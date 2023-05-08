@@ -2,7 +2,6 @@
 <html>
 <head>
 <link href='../steam/fonts.css' rel='stylesheet' type='text/css'><script src="../steam/steam.js"></script>
-
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
@@ -21,13 +20,13 @@
 <link href="assets/vendor/swiper/swiper-bundle.css" rel="stylesheet">
 
 <script>
-var VERSION=2.048;
+var VERSION=2.052;
 var BETA=0;
 var App=typeof App==='undefined'?0:App;
 </script>
 
-<link href="style.css?v=4" rel="stylesheet" type="text/css">
-<script  src="main.js?v=4"></script>
+<link href="style.css?v=9" rel="stylesheet" type="text/css">
+<script  src="main.js?v=10"></script>
 
 
 
@@ -63,7 +62,7 @@ var App=typeof App==='undefined'?0:App;
 		<div><a class="lightblueLink" style="font-weight:bold;" href="https://store.steampowered.com/app/1454400/Cookie_Clicker/" target="_blank" id="topbarSteamCC">Cookie Clicker on Steam</a></div>
 		<div><a href="//orteil.dashnet.org/randomgen/" target="_blank" id="topbarRandomgen">RandomGen</a></div>
 		<div><a href="//orteil.dashnet.org/igm/" target="_blank" id="topbarIGM">Idle Game Maker</a></div>
-		<div style="float:right;"><a id="changeLanguage" style="font-variant:small-caps;">Change language</a></div>
+		<div style="float:right;position:relative;"><div id="tinyglobe" style="position:absolute;top:-4px;width:22px;height:22px;background:url(img/tinyglobeSheet.gif);right:4px;top:4px;pointer-events:none;"></div><a id="changeLanguage" style="font-variant:small-caps;padding-right:20px;" onmouseover="INTERVAL_TINYGLOBE=setInterval(function(){var tinyglobe=document.getElementById('tinyglobe');tinyglobe.style.backgroundPosition=(parseInt(tinyglobe.style.backgroundPosition)-22)+'px';},30);" onmouseout="clearInterval(INTERVAL_TINYGLOBE);">Change language</a><script>document.getElementById('tinyglobe').style.backgroundPosition=(-[0,19,27][Math.floor(Math.random()*3)]*22)+'px';</script></div>
 		<div id="links" class="hoverer">
 			Other versions
 			<div class="hoverable">
@@ -101,7 +100,7 @@ var App=typeof App==='undefined'?0:App;
 		<div id="notes"></div>
 		<div id="darken"></div>
 		<div id="toggleBox" class="framed prompt"></div>
-		<div id="promptAnchor"><div id="prompt" class="framed"><div id="promptContent"></div><div class="close" onclick="PlaySound('snd/tickOff.mp3');Game.ClosePrompt();">x</div></div></div>
+		<div id="promptAnchor"><div id="prompt" class="framed"><div id="promptContent"></div><div id="promptClose" class="close" style="display:none;" onclick="PlaySound('snd/tickOff.mp3');Game.ClosePrompt();">x</div></div></div>
 		<div id="ascend">
 			<div id="ascendBG"></div>
 			<div id="ascendZoomable"><div id="ascendContent"><div id="ascendUpgrades" style="position:absolute;"></div></div></div>

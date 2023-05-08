@@ -62,7 +62,8 @@ Steam.load=(callback)=>{send({id:'cloud read'/*,name:'save'*/},callback);};//loa
 Steam.purgeCloud=()=>{send('cloud purge');};
 Steam.writeCloudUI=()=>{
 	return '<div class="listing" style="margin-bottom:-8px;">'+Game.WritePrefButton('cloudSave','cloudSaveButton',loc("Cloud saving")+ON,loc("Cloud saving")+OFF,'')+'<label>('+loc("allow use of Steam Cloud for save backups")+')</label></div><div id="cloudIsOn" class="listing" style="display:'+(Steam.cloud?'inline-block':'none')+';"><a class="option" style="font-size:11px;margin-left:12px;" '+Game.clickStr+'="Steam.purgeCloud();PlaySound(\'snd/tick.mp3\');">'+loc("Purge Cloud")+'</a><label>'+loc("Current Cloud use:")+' <b>'+Steam.cloudQuota+'</b></label></div><div id="cloudIsOff" class="listing" style="display:'+(!Steam.cloud?'inline-block':'none')+';font-size:11px;margin-left:12px;color:#c00;">'+loc("No Cloud access at the moment.")+'</div>'
-	+'<div class="listing">'+Game.WritePrefButton('discordPresence','discordPresenceButton',loc("Discord status")+ON,loc("Discord status")+OFF,'Steam.toggleRichPresence(Game.prefs.discordPresence);')+'<label>('+loc("if Discord is on, show your game info as activity status")+')</label></div>';
+	//+'<div class="listing">'+Game.WritePrefButton('discordPresence','discordPresenceButton',loc("Discord status")+ON,loc("Discord status")+OFF,'Steam.toggleRichPresence(Game.prefs.discordPresence);')+'<label>('+loc("if Discord is on, show your game info as activity status")+')</label></div>'
+	;
 };
 Steam.toggleRichPresence=function(val)
 {

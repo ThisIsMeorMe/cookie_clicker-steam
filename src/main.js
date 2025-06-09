@@ -41,7 +41,19 @@ Audio=function(src){
 	if (src && src.indexOf('soundjay')>-1) {Game.Popup('Sorry, no sounds hotlinked from soundjay.com.');this.play=function(){};}
 	else return new realAudio(src);
 };
+//MODS
+javascript: (function () {Game.LoadMod('https://klattmose.github.io/CookieClicker/AmericanSeason.js?v=1.7');}());
 
+
+
+
+
+
+
+
+
+
+//
 if(!Array.prototype.indexOf) {
     Array.prototype.indexOf = function(needle) {
         for(var i = 0; i < this.length; i++) {

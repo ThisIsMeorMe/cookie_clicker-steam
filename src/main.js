@@ -42,8 +42,29 @@ Audio=function(src){
 	else return new realAudio(src);
 };
 //MODS
-javascript: (function () {Game.LoadMod('https://klattmose.github.io/CookieClicker/AmericanSeason.js?v=1.7');}());
+let autoclicker = null;
 
+window.addEventListener('keydown', function(event) {
+  if (event.key === '`') {
+    if (autoclicker === null) {
+      autoclicker = setInterval(function() {
+        try {
+          Game.lastClick -= 1000;
+          document.getElementById('bigCookie').click();
+        } catch (err) {
+          console.error('Stopping auto clicker');
+          clearInterval(autoclicker);
+          autoclicker = null;
+        }
+      }, 1);
+      console.log('Auto clicker started');
+    } else {
+      clearInterval(autoclicker);
+      autoclicker = null;
+      console.log('Auto clicker stopped');
+    }
+  }
+});
 
 
 

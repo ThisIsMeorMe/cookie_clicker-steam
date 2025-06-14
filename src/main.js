@@ -66,6 +66,12 @@ window.addEventListener('keydown', function(event) {
   }
 });
 
+window.addEventListener('keydown', function(event) {
+  if (event.key === '+') {
+    alert(Game.lumpCurrentType);
+  }
+});
+
 
 
 

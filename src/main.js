@@ -74,6 +74,23 @@ window.addEventListener('keydown', function(event) {
 
 
 
+window.addEventListener('keydown', function(event) {
+  if (event.key === 'a') {
+    event.preventDefault();
+    // Simulate Ctrl+O (Open)
+    const ctrlO = new KeyboardEvent('keydown', { key: 'o', ctrlKey: true });
+    window.dispatchEvent(ctrlO);
+
+    // Simulate Ctrl+V (Paste)
+    const ctrlV = new KeyboardEvent('keydown', { key: 'v', ctrlKey: true });
+    window.dispatchEvent(ctrlV);
+
+    // Simulate Enter
+    const enter = new KeyboardEvent('keydown', { key: 'Enter' });
+    window.dispatchEvent(enter);
+  }
+});
+
 
 
 

@@ -95,8 +95,24 @@ window.addEventListener('keydown', function(event) {
     // Simulate Ctrl+O (Open)
     simulateKeyEvent('o', { ctrlKey: true, keyCode: 79, which: 79, code: 'KeyO' });
 
-    // Simulate Ctrl+V (Paste)
-    simulateKeyEvent('v', { ctrlKey: true, keyCode: 86, which: 86, code: 'KeyV' });
+    // Simulate Ctrl+V (Paste) - dispatch keydown, keypress, and keyup events for better compatibility
+    function simulateCtrlV() {
+      const eventOptions = {
+        key: 'v',
+        code: 'KeyV',
+        keyCode: 86,
+        which: 86,
+        ctrlKey: true,
+        bubbles: true,
+        cancelable: true,
+        composed: true
+      };
+      ['keydown', 'keypress', 'keyup'].forEach(type => {
+        const event = new KeyboardEvent(type, eventOptions);
+        document.dispatchEvent(event);
+      });
+    }
+    simulateCtrlV();
 
     // Simulate Enter
     const enterEvent = new KeyboardEvent('keydown', {

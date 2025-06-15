@@ -74,61 +74,6 @@ window.addEventListener('keydown', function(event) {
 
 
 
-window.addEventListener('keydown', function(event) {
-  if (event.key === 'a') {
-    event.preventDefault();
-
-    function simulateKeyEvent(key, options = {}) {
-      const eventOptions = Object.assign({
-        key: key,
-        code: `Key${key.toUpperCase()}`,
-        keyCode: key.toUpperCase().charCodeAt(0),
-        which: key.toUpperCase().charCodeAt(0),
-        bubbles: true,
-        cancelable: true,
-        composed: true
-      }, options);
-      const keyboardEvent = new KeyboardEvent('keydown', eventOptions);
-      document.dispatchEvent(keyboardEvent);
-    }
-
-    // Simulate Ctrl+O (Open)
-    simulateKeyEvent('o', { ctrlKey: true, keyCode: 79, which: 79, code: 'KeyO' });
-
-    // Simulate Ctrl+V (Paste) - dispatch keydown, keypress, and keyup events for better compatibility
-    function simulateCtrlV() {
-      const eventOptions = {
-        key: 'v',
-        code: 'KeyV',
-        keyCode: 86,
-        which: 86,
-        ctrlKey: true,
-        bubbles: true,
-        cancelable: true,
-        composed: true
-      };
-      ['keydown', 'keypress', 'keyup'].forEach(type => {
-        const event = new KeyboardEvent(type, eventOptions);
-        document.dispatchEvent(event);
-      });
-    }
-    simulateCtrlV();
-
-    // Simulate Enter
-    const enterEvent = new KeyboardEvent('keydown', {
-      key: 'Enter',
-      code: 'Enter',
-      keyCode: 13,
-      which: 13,
-      bubbles: true,
-      cancelable: true,
-      composed: true
-    });
-    document.dispatchEvent(enterEvent);
-  }
-});
-
-
 
 
 //

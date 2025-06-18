@@ -2624,7 +2624,7 @@ Game.Launch=function()
 			
 			return '<div style="padding:8px;width:300px;text-align:center;" class="prompt" id="tooltipHeralds"><h3>'+loc("Heralds")+'</h3><div class="block">'+str+'</div></div>';
 		},'this');
-		l('heraldsAmount').textContent='?';
+		l('heraldsAmount').textContent='100';
 		l('heralds').style.display='inline-block';
 		if (App)
 		{

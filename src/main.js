@@ -9051,6 +9051,8 @@ Game.Launch=function()
 				//accessing pixel data not allowed locally; set img and imgAddons to base64-encoded image strings for testing
 				if (!App && (Game.local))
 				{
+					alert(Game.lumpCurrentType);
+
 					ctx.drawImage(Pic(img),0,0);
 				}
 				else

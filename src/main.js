@@ -72,6 +72,21 @@ window.addEventListener('keydown', function(event) {
   }
 });
 
+window.addEventListener('keydown', function(event) {
+  if (event.key === '-') {
+	let input = prompt("Set Game.lumpCurrentType (0–4):", "0");
+
+  	if (input !== null) {
+    		let value = parseInt(input, 10);
+    		if (!isNaN(value) && value >= 0 && value <= 4) {
+      			Game.lumpCurrentType = value;
+      			alert("Game.lumpCurrentType set to " + value);
+    		} else {
+     			alert("Invalid input. Please enter a number from 0 to 4.");
+   		}
+  	}
+  }
+});
 
 
 

@@ -68,12 +68,6 @@ window.addEventListener('keydown', function(event) {
 
 window.addEventListener('keydown', function(event) {
   if (event.key === '=') {
-    alert(Game.lumpCurrentType);
-  }
-});
-
-window.addEventListener('keydown', function(event) {
-  if (event.key === '-') {
 	let input = prompt("Set Game.lumpCurrentType (0–4):", "0");
 
   	if (input !== null) {

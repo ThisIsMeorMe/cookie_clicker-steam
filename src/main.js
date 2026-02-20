@@ -1,4 +1,4 @@
-﻿/*
+/*
 All this code is copyright Orteil, 2013-2025.
 	-with some help, advice and fixes by Nicholas Laux, Debugbro, Opti, the folks at Playsaurus, and lots of people on reddit, Discord, and the DashNet forums
 	-also includes a bunch of snippets found on stackoverflow.com and others
@@ -9009,10 +9009,6 @@ Game.Launch=function()
 				if (!App && (Game.local))
 				{
 					ctx.drawImage(Pic(img),0,0);
-				}
-				else
-				{
-					ctx.drawImage(Pic(img),0,0);
 					var canvasAddon=document.createElement('canvas');
 					canvasAddon.width=32;
 					canvasAddon.height=32;
@@ -9116,6 +9112,10 @@ Game.Launch=function()
 						}
 					}
 					ctx.putImageData(imgData,0,0);
+				}
+				else
+				{
+					ctx.drawImage(Pic(img),0,0);
 				}
 			});
 		}

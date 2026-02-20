@@ -9116,7 +9116,19 @@ Game.Launch=function()
 				}
 				else
 				{
+					// draw base image
 					ctx.drawImage(Pic(img),0,0);
+					// when we can't access pixel data (file://), still draw addon tiles directly
+					// addon tiles are 32x32 and placed onto the 64x64 base at x=16,y=0
+					var addonGenes=['face','head','hair','acc1','acc2'];
+					for (var geneI=0;geneI<addonGenes.length;geneI++)
+					{
+						var addonTile=Game.YouCustomizer.getGeneValue(addonGenes[geneI]);
+						if (!addonTile || addonTile.length===0) continue;
+						var sx=8+addonTile[0]*32;
+						var sy=addonTile[1]*32;
+						try{ctx.drawImage(Pic(imgAddons),sx,sy,32,32,16,0,32,32);}catch(e){}
+					}
 				}
 			});
 		}

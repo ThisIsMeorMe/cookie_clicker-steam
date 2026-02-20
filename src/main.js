@@ -9011,15 +9011,14 @@ Game.Launch=function()
 			var imgAddons='youAddons.png?v='+Game.version;
 			
 			Game.Loader.waitForLoad([img,imgAddons],function(){
-				// only attempt pixel manipulation when images are provided as data URIs
-				// this avoids tainting / SecurityError when running the game from local file:// URLs
-				if (!App && Game.local && Game.Loader.assets[img] && Game.Loader.assets[img].src && Game.Loader.assets[img].src.indexOf('data:')!==-1 && Game.Loader.assets[imgAddons] && Game.Loader.assets[imgAddons].src && Game.Loader.assets[imgAddons].src.indexOf('data:')!==-1)
+				try
 				{
+					// attempt pixel manipulation (may throw SecurityError if the image is tainted)
 					ctx.drawImage(Pic(img),0,0);
 					var canvasAddon=document.createElement('canvas');
 					canvasAddon.width=32;
 					canvasAddon.height=32;
-					ctxAddon=canvasAddon.getContext('2d');
+					var ctxAddon=canvasAddon.getContext('2d');
 					var canvasCols=document.createElement('canvas');
 					var colsN=64;
 					canvasCols.width=8;
@@ -9037,17 +9036,17 @@ Game.Launch=function()
 							[dataCols[4+i*32+8],dataCols[4+i*32+1+8],dataCols[4+i*32+2+8]],
 						];
 					}
-				
+
 					var imgData=ctx.getImageData(0,0,64,64);
 					var data=imgData.data;
-				
+
 					var colSkinFull=[[32,14,10],[180,80,54],[208,144,101],[225,192,150]];
 					var colSkin=[];for (var colI=0;colI<colSkinFull.length;colI++){colSkin[colI]=colSkinFull[colI][0]*1000000+colSkinFull[colI][1]*1000+colSkinFull[colI][2];}
 					var colHairFull=[[32,14,10],[82,55,53],[100,83,80],[116,97,89]];
 					var colHair=[];for (var colI=0;colI<colHairFull.length;colI++){colHair[colI]=colHairFull[colI][0]*1000000+colHairFull[colI][1]*1000+colHairFull[colI][2];}
 					var shade1=0*1000000+118*1000+206;
 					var shade2=0*1000000+71*1000+125;
-				
+
 					//apply addon canvases to main canvas, handling shading on skin and hair where necessary
 					var addonGenes=['face','head','hair','acc1','acc2'];
 					for (var geneI=0;geneI<addonGenes.length;geneI++)
@@ -9055,14 +9054,14 @@ Game.Launch=function()
 						var addonTile=Game.YouCustomizer.getGeneValue(addonGenes[geneI]);
 						ctxAddon.clearRect(0,0,32,32);
 						ctxAddon.drawImage(Pic(imgAddons),8+addonTile[0]*32,addonTile[1]*32,32,32,0,0,32,32);
-					
+
 						var imgDataAddon=ctxAddon.getImageData(0,0,32,32);
 						var dataAddon=imgDataAddon.data;
 						var x=0;var y=0;
 						for (i=0;i<dataAddon.length;i+=4)
 						{
 							var r=dataAddon[i];var g=dataAddon[i+1];var b=dataAddon[i+2];var a=dataAddon[i+3];
-						
+
 							var off=((x+16)+y*64)*4;
 							if (a!=0)
 							{
@@ -9080,7 +9079,7 @@ Game.Launch=function()
 									indShadeOr=colHair.indexOf(ro*1000000+go*1000+bo);
 									if (indShadeOr>0) typeOr=2;//is hair
 								}
-							
+
 								if (shade>0 && indShadeOr>0)//painting shadow on hair or skin
 								{//light blue: shade one stage; dark blue: shade 2 stages
 									var colOut=(typeOr==1?colSkinFull:typeOr==2?colHairFull:0)[Math.max(0,indShadeOr-shade)];
@@ -9092,7 +9091,7 @@ Game.Launch=function()
 							if (x>=32) {x=0;y++;}
 						}
 					}
-				
+
 					//recolor hair and skin on final image
 					var skinCol=Game.YouCustomizer.getGeneValue('skinCol');
 					var hairCol=Game.YouCustomizer.getGeneValue('hairCol');
@@ -9120,12 +9119,10 @@ Game.Launch=function()
 					}
 					ctx.putImageData(imgData,0,0);
 				}
-				else
+				catch(e)
 				{
-					// draw base image
+					// fallback: draw base image and addon tiles directly (no pixel manipulation)
 					ctx.drawImage(Pic(img),0,0);
-					// when we can't access pixel data (file://), still draw addon tiles directly
-					// addon tiles are 32x32 and placed onto the 64x64 base at x=16,y=0
 					var addonGenes=['face','head','hair','acc1','acc2'];
 					for (var geneI=0;geneI<addonGenes.length;geneI++)
 					{
@@ -9133,7 +9130,7 @@ Game.Launch=function()
 						if (!addonTile || addonTile.length===0) continue;
 						var sx=8+addonTile[0]*32;
 						var sy=addonTile[1]*32;
-						try{ctx.drawImage(Pic(imgAddons),sx,sy,32,32,16,0,32,32);}catch(e){}
+						try{ctx.drawImage(Pic(imgAddons),sx,sy,32,32,16,0,32,32);}catch(e2){}
 					}
 				}
 			});

@@ -8996,287 +8996,278 @@ Game.Launch=function()
 			Game.UnlockTiered(this);
 			if (this.amount>=Game.SpecialGrandmaUnlock && Game.Objects['Grandma'].amount>0) Game.Unlock(this.grandma.name);
 		});
-		Game.YouCustomizer={};
-		Game.YouCustomizer.render=function()
-		{
-			var me=Game.Objects['You'];
-			var ctx=me.ctxAdd;
-			var img='you.png';
-			var imgAddons='youAddons.png?v='+Game.version;
-			
-			Game.Loader.waitForLoad([img,imgAddons],function(){
-				//accessing pixel data not allowed locally; set img and imgAddons to base64-encoded image strings for testing
-				if (!App && (Game.local))
-				{
-					ctx.drawImage(Pic(img),0,0);
-				}
-				else
-				{
-					ctx.drawImage(Pic(img),0,0);
-					var canvasAddon=document.createElement('canvas');
-					canvasAddon.width=32;
-					canvasAddon.height=32;
-					ctxAddon=canvasAddon.getContext('2d');
-					var canvasCols=document.createElement('canvas');
-					var colsN=64;
-					canvasCols.width=8;
-					canvasCols.height=colsN;
-					var ctxCols=canvasCols.getContext('2d');
-					ctxCols.drawImage(Pic(imgAddons),0,0,8,colsN,0,0,8,colsN);
-					var imgDataCols=ctxCols.getImageData(0,0,8,colsN);
-					var dataCols=imgDataCols.data;
-					var cols=[];
-					for (var i=0;i<colsN;i++)
-					{
-						cols[i]=[
-							[dataCols[4+i*32],dataCols[4+i*32+1],dataCols[4+i*32+2]],
-							[dataCols[4+i*32+4],dataCols[4+i*32+1+4],dataCols[4+i*32+2+4]],
-							[dataCols[4+i*32+8],dataCols[4+i*32+1+8],dataCols[4+i*32+2+8]],
-						];
-					}
-					
-					var imgData=ctx.getImageData(0,0,64,64);
-					var data=imgData.data;
-					
-					var colSkinFull=[[32,14,10],[180,80,54],[208,144,101],[225,192,150]];
-					var colSkin=[];for (var colI=0;colI<colSkinFull.length;colI++){colSkin[colI]=colSkinFull[colI][0]*1000000+colSkinFull[colI][1]*1000+colSkinFull[colI][2];}
-					var colHairFull=[[32,14,10],[82,55,53],[100,83,80],[116,97,89]];
-					var colHair=[];for (var colI=0;colI<colHairFull.length;colI++){colHair[colI]=colHairFull[colI][0]*1000000+colHairFull[colI][1]*1000+colHairFull[colI][2];}
-					var shade1=0*1000000+118*1000+206;
-					var shade2=0*1000000+71*1000+125;
-					
-					//apply addon canvases to main canvas, handling shading on skin and hair where necessary
-					var addonGenes=['face','head','hair','acc1','acc2'];
-					for (var geneI=0;geneI<addonGenes.length;geneI++)
-					{
-						var addonTile=Game.YouCustomizer.getGeneValue(addonGenes[geneI]);
-						ctxAddon.clearRect(0,0,32,32);
-						ctxAddon.drawImage(Pic(imgAddons),8+addonTile[0]*32,addonTile[1]*32,32,32,0,0,32,32);
-						
-						var imgDataAddon=ctxAddon.getImageData(0,0,32,32);
-						var dataAddon=imgDataAddon.data;
-						var x=0;var y=0;
-						for (i=0;i<dataAddon.length;i+=4)
-						{
-							var r=dataAddon[i];var g=dataAddon[i+1];var b=dataAddon[i+2];var a=dataAddon[i+3];
-							
-							var off=((x+16)+y*64)*4;
-							if (a!=0)
-							{
-								var ro=data[off];
-								var go=data[off+1];
-								var bo=data[off+2];
-								var col=r*1000000+g*1000+b;
-								var shade=col==shade2?2:col==shade1?1:0;
-								var indShadeAddon=colSkin.indexOf(r*1000000+g*1000+b);
-								var indShadeOr=colSkin.indexOf(ro*1000000+go*1000+bo);
-								var typeOr=0;
-								if (indShadeOr>0) typeOr=1;//is skin
-								else if (indShadeOr==-1)
-								{
-									indShadeOr=colHair.indexOf(ro*1000000+go*1000+bo);
-									if (indShadeOr>0) typeOr=2;//is hair
-								}
-								
-								if (shade>0 && indShadeOr>0)//painting shadow on hair or skin
-								{//light blue: shade one stage; dark blue: shade 2 stages
-									var colOut=(typeOr==1?colSkinFull:typeOr==2?colHairFull:0)[Math.max(0,indShadeOr-shade)];
-									data[off]=colOut[0];data[off+1]=colOut[1];data[off+2]=colOut[2];data[off+3]=a;
-								}
-								else if (shade==0) {data[off]=r;data[off+1]=g;data[off+2]=b;data[off+3]=a;}
-							}
-							x++;
-							if (x>=32) {x=0;y++;}
-						}
-					}
-					
-					//recolor hair and skin on final image
-					var skinCol=Game.YouCustomizer.getGeneValue('skinCol');
-					var hairCol=Game.YouCustomizer.getGeneValue('hairCol');
-					for (i=0;i<data.length;i+=4)
-					{
-						var r=data[i];var g=data[i+1];var b=data[i+2];var a=data[i+3];
-						if (a!=0)
-						{
-							var indSkin=colSkin.indexOf(r*1000000+g*1000+b);
-							if (indSkin>0)
-							{
-								var col=cols[skinCol][indSkin-1];
-								data[i]=col[0];data[i+1]=col[1];data[i+2]=col[2];
-							}
-							else
-							{
-								var indHair=colHair.indexOf(r*1000000+g*1000+b);
-								if (indHair>0)
-								{
-									var col=cols[hairCol][indHair-1];
-									data[i]=col[0];data[i+1]=col[1];data[i+2]=col[2];
-								}
-							}
-						}
-					}
-					ctx.putImageData(imgData,0,0);
-				}
-			});
-		}
-		Game.YouCustomizer.genes=[
-			{id:'hair',isList:true,def:0,choices:[
-				[0,0],[1,0],[2,0],[3,0],[4,0],[2,1],[3,1],[4,1],[4,2],[5,3],[8,2],[7,1],[5,5],[4,5],[10,0],[9,1],[9,2],
-			]},
-			{id:'hairCol',isList:true,def:1,choices:[20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37]},
-			{id:'skinCol',isList:true,def:0,choices:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]},
-			{id:'head',isList:true,def:0,choices:[
-				[0,0],[1,1],[0,1],[4,3],[10,3],
-			]},
-			{id:'face',isList:true,def:0,choices:[
-				[3,5],[0,0],[0,2],[1,2],[2,2],[3,2],[0,3],[1,3],[2,3],[3,3],
-			]},
-			{id:'acc1',isList:true,def:0,choices:[
-				[0,0],[5,1],[5,0],[5,2],[0,4],[1,4],[2,4],[6,4],[8,5],[3,4],[7,5],[6,0],[6,1],[4,4],[5,4],[2,5],[7,4],[0,5],[1,5],[6,5],[6,2],[6,3],[7,0],[7,2],[7,3],[8,1],[8,3],[8,4],[9,3],[9,0],[10,1],[10,2],[9,4],[9,5],[10,4],[10,5],
-			]},
-			{id:'acc2',isList:true,def:0,choices:[
-				[]
-			]},
-		];
-		Game.YouCustomizer.save=function()
-		{
-			return Game.YouCustomizer.currentGenes.join(',');
-		}
-		Game.YouCustomizer.load=function(genes,noReset)
-		{
-			if (!noReset) Game.YouCustomizer.resetGenes();
-			if (genes)
-			{
-				genes=genes.split(',');
-				for (var i=0;i<Game.YouCustomizer.genes.length;i++)
-				{
-					//leave a gene as-is with "-"
-					if (typeof genes[i]!=='undefined' && genes[i]!='-')
-					{
-						gene=Game.YouCustomizer.genes[i];
-						var val=parseInt(genes[i]);
-						if (isNaN(val)) continue;
-						if (gene.isList && (val<0 || val>=gene.choices.length)) continue;
-						else if (!gene.isList && (val<gene.choices[0] || val>gene.choices[1])) continue;
-						else Game.YouCustomizer.currentGenes[i]=val;
-					}
-				}
-				return true;
-			}
-			else return false;
-		}
-		Game.YouCustomizer.genesById={};for (var i=0;i<Game.YouCustomizer.genes.length;i++){Game.YouCustomizer.genes[i].n=i;Game.YouCustomizer.genesById[Game.YouCustomizer.genes[i].id]=Game.YouCustomizer.genes[i];}
-		Game.YouCustomizer.genesById['acc2'].choices=Game.YouCustomizer.genesById['acc1'].choices;
-		Game.YouCustomizer.currentGenes=[];
-		Game.YouCustomizer.getGeneValue=function(id)
-		{
-			var gene=Game.YouCustomizer.genesById[id];
-			if (gene.isList) return gene.choices[Game.YouCustomizer.currentGenes[gene.n]];
-			else return Game.YouCustomizer.currentGenes[gene.n];
-		};
-		Game.YouCustomizer.resetGenes=function(){for (var i=0;i<Game.YouCustomizer.genes.length;i++){Game.YouCustomizer.currentGenes[i]=Game.YouCustomizer.genes[i].def;}}
-		Game.YouCustomizer.resetGenes();
-		Game.YouCustomizer.offsetGene=function(gene,off)
-		{
-			gene=Game.YouCustomizer.genesById[gene];
-			Game.YouCustomizer.currentGenes[gene.n]+=off;
-			if (gene.isList)
-			{
-				if (Game.YouCustomizer.currentGenes[gene.n]>=gene.choices.length) Game.YouCustomizer.currentGenes[gene.n]=0;
-				else if (Game.YouCustomizer.currentGenes[gene.n]<0) Game.YouCustomizer.currentGenes[gene.n]=gene.choices.length-1;
-				if (l('customizerSelect-N-'+gene.id)) l('customizerSelect-N-'+gene.id).innerHTML=Game.YouCustomizer.currentGenes[gene.n]+1;
-			}
-			else
-			{
-				if (Game.YouCustomizer.currentGenes[gene.n]>gene.choices[1]) Game.YouCustomizer.currentGenes[gene.n]=gene.choices[0];
-				else if (Game.YouCustomizer.currentGenes[gene.n]<gene.choices[0]) Game.YouCustomizer.currentGenes[gene.n]=gene.choices[1];
-				if (l('customizerSelect-N-'+gene.id)) l('customizerSelect-N-'+gene.id).innerHTML=Game.YouCustomizer.currentGenes[gene.n]+1-gene.choices[0];
-			}
-			if (off!=0)
-			{
-				PlaySound('snd/press.mp3');
-				
-				Game.YouCustomizer.render();
-				Game.YouCustomizer.renderPortrait();
-				
-				if (
-					Game.YouCustomizer.currentGenes[0]==9
-					&& (Game.YouCustomizer.currentGenes[1]==1 || Game.YouCustomizer.currentGenes[1]==6)
-					&& (Game.YouCustomizer.currentGenes[3]==2 || Game.YouCustomizer.currentGenes[3]==3)
-					&& (Game.YouCustomizer.currentGenes[5]==2 || Game.YouCustomizer.currentGenes[5]==3 || Game.YouCustomizer.currentGenes[6]==2 || Game.YouCustomizer.currentGenes[6]==3)
-					&& (Game.YouCustomizer.currentGenes[5]==0 || Game.YouCustomizer.currentGenes[6]==0)
-				) Game.Win('In her likeness');
-				
-			}
-		}
-		Game.YouCustomizer.randomize=function()
-		{
-			for (var i=0;i<Game.YouCustomizer.genes.length;i++)
-			{
-				var gene=Game.YouCustomizer.genes[i];
-				Game.YouCustomizer.currentGenes[i]=Math.floor(Math.random()*gene.choices.length);
-				
-				if (gene.isList)
-				{
-					if (l('customizerSelect-N-'+gene.id)) l('customizerSelect-N-'+gene.id).innerHTML=Game.YouCustomizer.currentGenes[gene.n]+1;
-				}
-				else
-				{
-					if (l('customizerSelect-N-'+gene.id)) l('customizerSelect-N-'+gene.id).innerHTML=Game.YouCustomizer.currentGenes[gene.n]+1-gene.choices[0];
-				}
-			}
-			Game.YouCustomizer.render();
-			Game.YouCustomizer.renderPortrait();
-		}
-		Game.YouCustomizer.renderPortrait=function()
-		{
-			if (!l('youCustomizerPreview')) return false;
-			var ctx=l('youCustomizerPreview').getContext('2d');
-			ctx.clearRect(0,0,32,32)
-			ctx.drawImage(Game.Objects['You'].canvasAdd,-16,0);
-			ctx=l('youCustomizerPreviewBlur').getContext('2d');
-			ctx.globalCompositeOperation='source-over';
-			ctx.clearRect(0,0,32,32)
-			ctx.drawImage(Game.Objects['You'].canvasAdd,-16,0);
-			ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(16,16,11,0,2*Math.PI);ctx.fill();
-		}
-		Game.YouCustomizer.export=function()
-		{
-			Game.Prompt('<h3>'+loc("Export")+'</h3><div class="block"><textarea id="textareaPrompt" style="width:100%;height:32px;text-align:center;" readonly>'+Game.YouCustomizer.save()+'</textarea></div>',[[loc("Done"),'Game.YouCustomizer.prompt();']]);
-			l('textareaPrompt').focus();l('textareaPrompt').select();
-		}
-		Game.YouCustomizer.import=function(def)
-		{
-			//1,14,6,0,6,29,30
-			//2,13,1,0,6,10,9
-			Game.Prompt('<h3>'+loc("Import")+'</h3><div class="block"><div id="importError" class="warning" style="font-weight:bold;font-size:11px;"></div><textarea id="textareaPrompt" style="width:100%;height:32px;text-align:center;">'+(def||'')+'</textarea></div>',[[loc("Load"),'if (l(\'textareaPrompt\').value.length==0){return false;}if (Game.YouCustomizer.load(l(\'textareaPrompt\').value,true)){Game.YouCustomizer.prompt();}else{l(\'importError\').innerHTML=\'(\'+loc("Error!")+\')\';}'],[loc("Nevermind"),'Game.YouCustomizer.prompt();']]);
-			l('textareaPrompt').focus();
-		}
-		Game.YouCustomizer.prompt=function()
-		{
-			var makeCustomizerSelector=function(gene,text)
-			{
-				gene=Game.YouCustomizer.genesById[gene];
-				return '<div style="clear:both;width:100%;margin-bottom:6px;"><a '+Game.clickStr+'="Game.YouCustomizer.offsetGene(\''+gene.id+'\',-1)" id="customizerSelect-L-'+gene.id+'" class="framed smallFancyButton" style="float:left;margin-top:-4px;padding:2px 4px;">&lt;</a>'+text+' <div id="customizerSelect-N-'+gene.id+'" style="display:inline;">'+(gene.isList?(Game.YouCustomizer.currentGenes[gene.n]+1):(Game.YouCustomizer.currentGenes[gene.n]+1-gene.choices[0]))+'</div><a '+Game.clickStr+'="Game.YouCustomizer.offsetGene(\''+gene.id+'\',1)" id="customizerSelect-R-'+gene.id+'" class="framed smallFancyButton" style="float:right;margin-top:-4px;padding:2px 4px;">&gt;</a></div>';
-			}
-			Game.Prompt('<id CustomizeYou><h3>'+loc("Customize your clones")+'</h3><div class="block" style="text-align:center;font-size:11px;">'+loc("Sprung from your very DNA. Shape them in your image!")+'</div><div class="block" style="position:relative;">'+
-				'<a style="position:absolute;left:4px;top:2px;font-size:10px;padding:2px 6px;" class="option" onclick="Game.YouCustomizer.import();PlaySound(\'snd/tick.mp3\');">'+loc("Import")+'</a>'+
-				'<a style="position:absolute;right:0px;top:2px;font-size:10px;padding:2px 6px;" class="option" onclick="Game.YouCustomizer.export();PlaySound(\'snd/tick.mp3\');">'+loc("Export")+'</a>'+
-				'<div style="position:relative;width:64px;height:64px;margin:0px auto 8px auto;"><canvas class="crisp" style="mask-image:radial-gradient(rgba(0,0,0,1) 0%,rgba(0,0,0,1) 40%,rgba(0, 0, 0,0) 75%);-webkit-mask-image:radial-gradient(rgba(0,0,0,1) 0%,rgba(0,0,0,1) 60%,rgba(0, 0, 0,0) 75%);border-radius:16px;transform:scale(2);position:absolute;left:16px;top:16px;" width=32 height=32 id="youCustomizerPreview"></canvas><canvas style="filter:blur(1px);opacity:0.5;border-radius:16px;transform:scale(2);position:absolute;left:16px;top:16px;z-index:10;" width=32 height=32 id="youCustomizerPreviewBlur"></canvas></div>'+
-				'<div style="text-align:center;clear:both;font-weight:bold;font-size:11px;" class="titleFont">'+
-					'<a class="option" onclick="Game.YouCustomizer.randomize();PlaySound(\'snd/pop\'+Math.floor(Math.random()*3+1)+\'.mp3\',0.75);">'+loc("Random")+'</a><br>'+
-					makeCustomizerSelector('hair',loc("Hair"))+
-					makeCustomizerSelector('hairCol',loc("Hair color"))+
-					makeCustomizerSelector('skinCol',loc("Skin color"))+
-					makeCustomizerSelector('head',loc("Head shape"))+
-					makeCustomizerSelector('face',loc("Face"))+
-					makeCustomizerSelector('acc1',loc("Extra")+'-A')+
-					makeCustomizerSelector('acc2',loc("Extra")+'-B')+
-				'</div>'+
-			'',[loc("Done")]);
-			Game.YouCustomizer.render();
-			Game.YouCustomizer.renderPortrait();
-		}
+Game.YouCustomizer = {};
+
+//====================== RENDER FUNCTION ======================
+Game.YouCustomizer.render = function() {
+    var me = Game.Objects['You'];
+    var ctx = me.ctxAdd;
+
+    var img = 'you.png';
+    var imgAddons = 'youAddons.png?v=' + Game.version;
+
+    // palette-based fallback for local testing
+    var paletteCols = [
+        [[247,218,179],[232,196,155],[207,168,127]],
+        [[214,182,142],[195,160,120],[172,136,96]],
+        [[181,145,107],[158,121,84],[134,97,63]],
+        [[160,120,80],[140,100,60],[120,80,40]],
+        [[32,14,10],[82,55,53],[100,83,80],[116,97,89]]
+        // ... add more if needed
+    ];
+
+    Game.Loader.waitForLoad([img,imgAddons], function() {
+        if (!App && Game.local) {
+            // local fallback, no pixel access
+            ctx.drawImage(Pic(img),0,0);
+            // no addons pixel logic needed locally
+        } else {
+            // normal rendering path (works when running via web)
+            ctx.drawImage(Pic(img),0,0);
+
+            var canvasAddon = document.createElement('canvas');
+            canvasAddon.width = 32;
+            canvasAddon.height = 32;
+            var ctxAddon = canvasAddon.getContext('2d');
+
+            var canvasCols = document.createElement('canvas');
+            var colsN = 64;
+            canvasCols.width = 8;
+            canvasCols.height = colsN;
+            var ctxCols = canvasCols.getContext('2d');
+            ctxCols.drawImage(Pic(imgAddons),0,0,8,colsN,0,0,8,colsN);
+
+            var imgDataCols = ctxCols.getImageData(0,0,8,colsN);
+            var dataCols = imgDataCols.data;
+            var cols = [];
+            for (var i=0;i<colsN;i++) {
+                cols[i] = [
+                    [dataCols[4+i*32], dataCols[4+i*32+1], dataCols[4+i*32+2]],
+                    [dataCols[4+i*32+4], dataCols[4+i*32+5], dataCols[4+i*32+6]],
+                    [dataCols[4+i*32+8], dataCols[4+i*32+9], dataCols[4+i*32+10]]
+                ];
+            }
+
+            var imgData = ctx.getImageData(0,0,64,64);
+            var data = imgData.data;
+
+            // skin/hair shades
+            var colSkinFull=[[32,14,10],[180,80,54],[208,144,101],[225,192,150]];
+            var colSkin=[];for (var ci=0;ci<colSkinFull.length;ci++){colSkin[ci]=colSkinFull[ci][0]*1000000+colSkinFull[ci][1]*1000+colSkinFull[ci][2];}
+            var colHairFull=[[32,14,10],[82,55,53],[100,83,80],[116,97,89]];
+            var colHair=[];for (var ci=0;ci<colHairFull.length;ci++){colHair[ci]=colHairFull[ci][0]*1000000+colHairFull[ci][1]*1000+colHairFull[ci][2];}
+            var shade1 = 0*1000000+118*1000+206;
+            var shade2 = 0*1000000+71*1000+125;
+
+            // apply addon genes
+            var addonGenes=['face','head','hair','acc1','acc2'];
+            for (var geneI=0; geneI<addonGenes.length; geneI++) {
+                var addonTile = Game.YouCustomizer.getGeneValue(addonGenes[geneI]);
+                ctxAddon.clearRect(0,0,32,32);
+                ctxAddon.drawImage(Pic(imgAddons), 8+addonTile[0]*32, addonTile[1]*32, 32,32, 0,0,32,32);
+
+                var imgDataAddon = ctxAddon.getImageData(0,0,32,32);
+                var dataAddon = imgDataAddon.data;
+                var x=0, y=0;
+                for (var i=0;i<dataAddon.length;i+=4) {
+                    var r=dataAddon[i], g=dataAddon[i+1], b=dataAddon[i+2], a=dataAddon[i+3];
+                    var off = ((x+16)+y*64)*4;
+                    if (a!=0) {
+                        var ro=data[off], go=data[off+1], bo=data[off+2];
+                        var col=r*1000000+g*1000+b;
+                        var shade=col==shade2?2:col==shade1?1:0;
+                        var indShadeAddon=colSkin.indexOf(r*1000000+g*1000+b);
+                        var indShadeOr=colSkin.indexOf(ro*1000000+go*1000+bo);
+                        var typeOr=0;
+                        if (indShadeOr>0) typeOr=1;
+                        else if (indShadeOr==-1) {
+                            indShadeOr=colHair.indexOf(ro*1000000+go*1000+bo);
+                            if (indShadeOr>0) typeOr=2;
+                        }
+
+                        if (shade>0 && indShadeOr>0) {
+                            var colOut=(typeOr==1?colSkinFull:typeOr==2?colHairFull:0)[Math.max(0,indShadeOr-shade)];
+                            data[off]=colOut[0]; data[off+1]=colOut[1]; data[off+2]=colOut[2]; data[off+3]=a;
+                        } else if (shade==0) {
+                            data[off]=r; data[off+1]=g; data[off+2]=b; data[off+3]=a;
+                        }
+                    }
+                    x++;
+                    if (x>=32){x=0; y++;}
+                }
+            }
+
+            // recolor final hair/skin
+            var skinCol=Game.YouCustomizer.getGeneValue('skinCol');
+            var hairCol=Game.YouCustomizer.getGeneValue('hairCol');
+            for (var i=0;i<data.length;i+=4) {
+                var r=data[i], g=data[i+1], b=data[i+2], a=data[i+3];
+                if (a!=0) {
+                    var indSkin=colSkin.indexOf(r*1000000+g*1000+b);
+                    if (indSkin>0){
+                        var col=cols[skinCol][indSkin-1];
+                        data[i]=col[0]; data[i+1]=col[1]; data[i+2]=col[2];
+                    } else {
+                        var indHair=colHair.indexOf(r*1000000+g*1000+b);
+                        if (indHair>0){
+                            var col=cols[hairCol][indHair-1];
+                            data[i]=col[0]; data[i+1]=col[1]; data[i+2]=col[2];
+                        }
+                    }
+                }
+            }
+            ctx.putImageData(imgData,0,0);
+        }
+    });
+};
+
+//====================== GENES ======================
+Game.YouCustomizer.genes=[
+    {id:'hair',isList:true,def:0,choices:[[0,0],[1,0],[2,0],[3,0],[4,0],[2,1],[3,1],[4,1],[4,2],[5,3],[8,2],[7,1],[5,5],[4,5],[10,0],[9,1],[9,2]]},
+    {id:'hairCol',isList:true,def:1,choices:[20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37]},
+    {id:'skinCol',isList:true,def:0,choices:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]},
+    {id:'head',isList:true,def:0,choices:[[0,0],[1,1],[0,1],[4,3],[10,3]]},
+    {id:'face',isList:true,def:0,choices:[[3,5],[0,0],[0,2],[1,2],[2,2],[3,2],[0,3],[1,3],[2,3],[3,3]]},
+    {id:'acc1',isList:true,def:0,choices:[[0,0],[5,1],[5,0],[5,2],[0,4],[1,4],[2,4],[6,4],[8,5],[3,4],[7,5],[6,0],[6,1],[4,4],[5,4],[2,5],[7,4],[0,5],[1,5],[6,5],[6,2],[6,3],[7,0],[7,2],[7,3],[8,1],[8,3],[8,4],[9,3],[9,0],[10,1],[10,2],[9,4],[9,5],[10,4],[10,5]]},
+    {id:'acc2',isList:true,def:0,choices:[]}
+];
+
+Game.YouCustomizer.currentGenes = [];
+Game.YouCustomizer.genesById = {};
+for (var i=0;i<Game.YouCustomizer.genes.length;i++){
+    Game.YouCustomizer.genes[i].n=i;
+    Game.YouCustomizer.genesById[Game.YouCustomizer.genes[i].id]=Game.YouCustomizer.genes[i];
+}
+Game.YouCustomizer.genesById['acc2'].choices = Game.YouCustomizer.genesById['acc1'].choices;
+
+//====================== GENE HELPERS ======================
+Game.YouCustomizer.getGeneValue = function(id){
+    var gene = Game.YouCustomizer.genesById[id];
+    return gene.isList ? gene.choices[Game.YouCustomizer.currentGenes[gene.n]] : Game.YouCustomizer.currentGenes[gene.n];
+};
+
+Game.YouCustomizer.resetGenes = function(){
+    for (var i=0;i<Game.YouCustomizer.genes.length;i++){
+        Game.YouCustomizer.currentGenes[i] = Game.YouCustomizer.genes[i].def;
+    }
+};
+Game.YouCustomizer.resetGenes();
+
+//====================== OFFSET / RANDOMIZE ======================
+Game.YouCustomizer.offsetGene = function(gene, off){
+    gene = Game.YouCustomizer.genesById[gene];
+    Game.YouCustomizer.currentGenes[gene.n]+=off;
+    if (gene.isList){
+        if (Game.YouCustomizer.currentGenes[gene.n]>=gene.choices.length) Game.YouCustomizer.currentGenes[gene.n]=0;
+        if (Game.YouCustomizer.currentGenes[gene.n]<0) Game.YouCustomizer.currentGenes[gene.n]=gene.choices.length-1;
+        if (l('customizerSelect-N-'+gene.id)) l('customizerSelect-N-'+gene.id).innerHTML=Game.YouCustomizer.currentGenes[gene.n]+1;
+    } else {
+        if (Game.YouCustomizer.currentGenes[gene.n]>gene.choices[1]) Game.YouCustomizer.currentGenes[gene.n]=gene.choices[0];
+        if (Game.YouCustomizer.currentGenes[gene.n]<gene.choices[0]) Game.YouCustomizer.currentGenes[gene.n]=gene.choices[1];
+        if (l('customizerSelect-N-'+gene.id)) l('customizerSelect-N-'+gene.id).innerHTML=Game.YouCustomizer.currentGenes[gene.n]+1-gene.choices[0];
+    }
+    if (off!=0){
+        PlaySound('snd/press.mp3');
+        Game.YouCustomizer.render();
+        Game.YouCustomizer.renderPortrait();
+
+        // special win condition
+        if (
+            Game.YouCustomizer.currentGenes[0]==9 &&
+            (Game.YouCustomizer.currentGenes[1]==1 || Game.YouCustomizer.currentGenes[1]==6) &&
+            (Game.YouCustomizer.currentGenes[3]==2 || Game.YouCustomizer.currentGenes[3]==3) &&
+            (Game.YouCustomizer.currentGenes[5]==2 || Game.YouCustomizer.currentGenes[5]==3 || Game.YouCustomizer.currentGenes[6]==2 || Game.YouCustomizer.currentGenes[6]==3) &&
+            (Game.YouCustomizer.currentGenes[5]==0 || Game.YouCustomizer.currentGenes[6]==0)
+        ) Game.Win('In her likeness');
+    }
+};
+
+Game.YouCustomizer.randomize = function(){
+    for (var i=0;i<Game.YouCustomizer.genes.length;i++){
+        var gene = Game.YouCustomizer.genes[i];
+        Game.YouCustomizer.currentGenes[i] = Math.floor(Math.random()*gene.choices.length);
+        if (gene.isList){
+            if (l('customizerSelect-N-'+gene.id)) l('customizerSelect-N-'+gene.id).innerHTML = Game.YouCustomizer.currentGenes[gene.n]+1;
+        } else {
+            if (l('customizerSelect-N-'+gene.id)) l('customizerSelect-N-'+gene.id).innerHTML = Game.YouCustomizer.currentGenes[gene.n]+1-gene.choices[0];
+        }
+    }
+    Game.YouCustomizer.render();
+    Game.YouCustomizer.renderPortrait();
+};
+
+//====================== PORTRAIT ======================
+Game.YouCustomizer.renderPortrait = function(){
+    if (!l('youCustomizerPreview')) return false;
+    var ctx = l('youCustomizerPreview').getContext('2d');
+    ctx.clearRect(0,0,32,32);
+    ctx.drawImage(Game.Objects['You'].canvasAdd,-16,0);
+    ctx = l('youCustomizerPreviewBlur').getContext('2d');
+    ctx.globalCompositeOperation='source-over';
+    ctx.clearRect(0,0,32,32);
+    ctx.drawImage(Game.Objects['You'].canvasAdd,-16,0);
+    ctx.globalCompositeOperation='destination-out';
+    ctx.beginPath();
+    ctx.arc(16,16,11,0,2*Math.PI);
+    ctx.fill();
+};
+
+//====================== IMPORT / EXPORT ======================
+Game.YouCustomizer.save = function(){ return Game.YouCustomizer.currentGenes.join(','); };
+Game.YouCustomizer.load = function(genes,noReset){
+    if (!noReset) Game.YouCustomizer.resetGenes();
+    if (!genes) return false;
+    genes=genes.split(',');
+    for (var i=0;i<Game.YouCustomizer.genes.length;i++){
+        if (typeof genes[i]!=='undefined' && genes[i]!='-'){
+            var gene = Game.YouCustomizer.genes[i];
+            var val = parseInt(genes[i]);
+            if (isNaN(val)) continue;
+            if (gene.isList && (val<0 || val>=gene.choices.length)) continue;
+            else if (!gene.isList && (val<gene.choices[0] || val>gene.choices[1])) continue;
+            else Game.YouCustomizer.currentGenes[i]=val;
+        }
+    }
+    return true;
+};
+
+Game.YouCustomizer.export = function(){
+    Game.Prompt('<h3>'+loc("Export")+'</h3><div class="block"><textarea id="textareaPrompt" style="width:100%;height:32px;text-align:center;" readonly>'+Game.YouCustomizer.save()+'</textarea></div>',[[loc("Done"),'Game.YouCustomizer.prompt();']]);
+    l('textareaPrompt').focus();l('textareaPrompt').select();
+};
+
+Game.YouCustomizer.import = function(def){
+    Game.Prompt('<h3>'+loc("Import")+'</h3><div class="block"><div id="importError" class="warning" style="font-weight:bold;font-size:11px;"></div><textarea id="textareaPrompt" style="width:100%;height:32px;text-align:center;">'+(def||'')+'</textarea></div>',[[loc("Load"),'if (l(\'textareaPrompt\').value.length==0){return false;}if (Game.YouCustomizer.load(l(\'textareaPrompt\').value,true)){Game.YouCustomizer.prompt();}else{l(\'importError\').innerHTML=\'(\'+loc("Error!")+\')\';}'],[loc("Nevermind"),'Game.YouCustomizer.prompt();']]);
+    l('textareaPrompt').focus();
+};
+
+//====================== PROMPT UI ======================
+Game.YouCustomizer.prompt = function(){
+    var makeCustomizerSelector = function(gene,text){
+        gene = Game.YouCustomizer.genesById[gene];
+        return '<div style="clear:both;width:100%;margin-bottom:6px;"><a '+Game.clickStr+'="Game.YouCustomizer.offsetGene(\''+gene.id+'\',-1)" id="customizerSelect-L-'+gene.id+'" class="framed smallFancyButton" style="float:left;margin-top:-4px;padding:2px 4px;">&lt;</a>'+text+' <div id="customizerSelect-N-'+gene.id+'" style="display:inline;">'+(gene.isList?(Game.YouCustomizer.currentGenes[gene.n]+1):(Game.YouCustomizer.currentGenes[gene.n]+1-gene.choices[0]))+'</div><a '+Game.clickStr+'="Game.YouCustomizer.offsetGene(\''+gene.id+'\',1)" id="customizerSelect-R-'+gene.id+'" class="framed smallFancyButton" style="float:right;margin-top:-4px;padding:2px 4px;">&gt;</a></div>';
+    }
+
+    Game.Prompt('<id CustomizeYou><h3>'+loc("Customize your clones")+'</h3><div class="block" style="text-align:center;font-size:11px;">'+loc("Sprung from your very DNA. Shape them in your image!")+'</div><div class="block" style="position:relative;">'+
+        '<a style="position:absolute;left:4px;top:2px;font-size:10px;padding:2px 6px;" class="option" onclick="Game.YouCustomizer.import();PlaySound(\'snd/tick.mp3\');">'+loc("Import")+'</a>'+
+        '<a style="position:absolute;right:0px;top:2px;font-size:10px;padding:2px 6px;" class="option" onclick="Game.YouCustomizer.export();PlaySound(\'snd/tick.mp3\');">'+loc("Export")+'</a>'+
+        '<div style="position:relative;width:64px;height:64px;margin:0px auto 8px auto;"><canvas class="crisp" style="mask-image:radial-gradient(rgba(0,0,0,1) 0%,rgba(0,0,0,1) 40%,rgba(0,0,0,0) 75%);-webkit-mask-image:radial-gradient(rgba(0,0,0,1) 0%,rgba(0,0,0,1) 60%,rgba(0,0,0,0) 75%);border-radius:16px;transform:scale(2);position:absolute;left:16px;top:16px;" width=32 height=32 id="youCustomizerPreview"></canvas><canvas style="filter:blur(1px);opacity:0.5;border-radius:16px;transform:scale(2);position:absolute;left:16px;top:16px;z-index:10;" width=32 height=32 id="youCustomizerPreviewBlur"></canvas></div>'+
+        '<div style="text-align:center;clear:both;font-weight:bold;font-size:11px;" class="titleFont">'+
+            '<a class="option" onclick="Game.YouCustomizer.randomize();PlaySound(\'snd/pop\'+Math.floor(Math.random()*3+1)+\'.mp3\',0.75);">'+loc("Random")+'</a><br>'+
+            makeCustomizerSelector('hair',loc("Hair"))+
+            makeCustomizerSelector('hairCol',loc("Hair color"))+
+            makeCustomizerSelector('skinCol',loc("Skin color"))+
+            makeCustomizerSelector('head',loc("Head shape"))+
+            makeCustomizerSelector('face',loc("Face"))+
+            makeCustomizerSelector('acc1',loc("Extra")+'-A')+
+            makeCustomizerSelector('acc2',loc("Extra")+'-B')+
+        '</div>'+
+    '',[loc("Done")]);
+
+    Game.YouCustomizer.render();
+    Game.YouCustomizer.renderPortrait();
+};
+
 		
 		Game.foolObjects={
 			'Unknown':{name:'Investment',desc:'You\'re not sure what this does, you just know it means profit.',icon:0},
